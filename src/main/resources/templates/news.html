@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>News List</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            background-color: #f2f2f2; /* 전체 배경색 변경 */
+        }
+        h1 {
+            text-align: center;
+            color: #008000; /* 제목 색상 변경 */
+        }
+        table {
+            width: 80%;
+            margin: 0 auto;
+            border-collapse: collapse;
+            background-color: white; /* 테이블 배경색 변경 */
+        }
+        th, td {
+            border: 1px solid #dddddd;
+            padding: 8px;
+            text-align: left;
+        }
+        th {
+            background-color: #f2f2f2;
+        }
+        tr:nth-child(even) {
+            background-color: #f2f2f2;
+        }
+        tr:hover {
+            background-color: #ddd;
+        }
+        td a {
+            text-decoration: none;
+            color: blue;
+            cursor: pointer;
+        }
+        .pagination {
+            margin: 20px auto;
+            list-style-type: none;
+            display: inline-block;
+            padding: 0;
+        }
+        .pagination li {
+            display: inline;
+            padding: 5px;
+            margin-right: 5px;
+            border: 1px solid #dddddd;
+            background-color: #f2f2f2;
+        }
+        .pagination li:hover {
+            background-color: #ddd;
+        }
+        .pagination li.active {
+            background-color: #008000; /* 페이지 번호 활성 상태 배경색 변경 */
+            color: white;
+        }
+        .pagination li.disabled {
+            color: #cccccc;
+            pointer-events: none;
+        }
+        .pagination li a {
+            text-decoration: none;
+            color: inherit;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+<h1>오늘의 뉴스</h1>
+<table>
+    <thead>
+    <tr>
+        <th>번호</th>
+        <th>제목</th>
+        <th>조회수</th>
+        <th>생성일</th>
+    </tr>
+    </thead>
+    <tbody>
+    <tr th:each="newsEntity : ${newsPage.content}">
+        <td th:text="${newsEntity.id}">ID</td>
+        <td>
+            <a th:text="${newsEntity.title} + '(' + ${newsEntity.commentCount} + ')'" th:href="@{/detail(id=${newsEntity.id})}">Title</a>
+        </td>
+        <td th:text="${newsEntity.views}">Views</td>
+        <td th:text="${#temporals.format(newsEntity.createTime, 'yyyy-MM-dd')}">createTime</td>
+    </tr>
+    </tbody>
+</table>
+<div th:if="${newsPage.totalPages >= 1}">
+    <ul class="pagination">
+        <li th:class="${newsPage.number == 0} ? 'disabled' : ''">
+            <a th:href="@{/news(page=0)}">&laquo;</a>
+        </li>
+        <li th:each="i : ${#numbers.sequence(0, newsPage.totalPages - 1)}" th:class="${newsPage.number == i} ? 'active' : ''">
+            <a th:href="@{/news(page=${i})}" th:text="${i + 1}"></a>
+        </li>
+        <li th:class="${newsPage.number == newsPage.totalPages - 1} ? 'disabled' : ''">
+            <a th:href="@{/news(page=${newsPage.totalPages - 1})}">&raquo;</a>
+        </li>
+    </ul>
+</div>
+</body>
+</html>
