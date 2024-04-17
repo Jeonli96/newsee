@@ -33,6 +33,7 @@ public class NewsController {
 	private final NewsRepository newsRepository;
 	private final CommentRepository commentRepository;
 
+	// 게시글 목록
 	@GetMapping("/news")
 	public String newsList(Model model, @PageableDefault(size = 10) Pageable pageable) {
 		// id를 내림차순으로 정렬하는 Sort 객체 생성
@@ -47,6 +48,7 @@ public class NewsController {
 		return "news";
 	}
 
+	// 게시글 상세보기
 	@GetMapping("/detail")
 	public String newsDetail(Model model, @RequestParam(value = "id") long id) {
 		// 게시글 find
@@ -64,41 +66,46 @@ public class NewsController {
 	}
 
 	@PostMapping("/newsPost")
-	public String newsPost(@RequestBody NewsRequest request) {
+	public String newsPost(@RequestBody NewsRequest request, HttpServletRequest httpServletRequest) {
 		// 새로운 게시글 생성
 		NewsEntity newsEntity = new NewsEntity();
 		newsEntity.setTitle(request.getTitle());
 		newsEntity.setContents(request.getContents());
 		newsEntity.setViews(0);
 		newsEntity.setCommentCount(0);
-		newsRepository.save(newsEntity);
 
-		// 게시글 목록 페이지로 리다이렉트
-		return "redirect:/news";
-	}
-
-	@PostMapping("/commentPost")
-	public String commentPost(@ModelAttribute CommentRequest request, HttpServletRequest httpServletRequest) {
-		// 댓글 추가 로직
-		CommentEntity commentEntity = new CommentEntity();
 		// 클라이언트의 IP 주소를 가져옵니다.
 		String clientIpAddress = httpServletRequest.getHeader("X-Forwarded-For");
 		if (clientIpAddress == null || clientIpAddress.isEmpty()) {
 			// 프록시 서버를 통해 요청이 전달되지 않은 경우, 클라이언트의 진짜 IP 주소는 getRemoteAddr() 메소드로 가져올 수 있습니다.
 			clientIpAddress = httpServletRequest.getRemoteAddr();
 		}
-		commentEntity.setComments(request.getComment());
-		commentEntity.setNewsId(request.getNewsId());
-		commentEntity.setClientIP(clientIpAddress);
-		commentRepository.save(commentEntity);
+		newsEntity.setClientIP(clientIpAddress);
 
-		// 게시글 댓글 개수 증가 로직
-		Optional<NewsEntity> newsDetailOptional = newsRepository.findById(request.getNewsId());
-		NewsEntity newsDetail = newsDetailOptional.orElseThrow(() -> new RuntimeException("News not found"));
-		newsDetail.setCommentCount(newsDetail.getCommentCount() + 1);
-		newsRepository.save(newsDetail); // 변경된 댓글 개수를 저장
+		newsRepository.save(newsEntity);
 
-		return "redirect:/detail?id=" + request.getNewsId();
+		// 게시글 목록 페이지로 리다이렉트
+		return "redirect:/news";
 	}
 
+	@GetMapping("/remove")
+	public String newsRemove(@RequestParam(value = "id") long id, HttpServletRequest httpServletRequest) {
+		// 게시글 find
+		Optional<NewsEntity> newsDetailOptional = newsRepository.findById(id);
+		NewsEntity newsDetail = newsDetailOptional.orElseThrow(() -> new RuntimeException("News not found"));
+
+		// 클라이언트의 IP 주소를 가져옵니다.
+		String clientIpAddress = httpServletRequest.getHeader("X-Forwarded-For");
+		if (clientIpAddress == null || clientIpAddress.isEmpty()) {
+			// 프록시 서버를 통해 요청이 전달되지 않은 경우, 클라이언트의 진짜 IP 주소는 getRemoteAddr() 메소드로 가져올 수 있습니다.
+			clientIpAddress = httpServletRequest.getRemoteAddr();
+		}
+
+		//삭제 로직
+		if (newsDetail.getClientIP().equals(clientIpAddress)) {
+			newsRepository.deleteById(id);
+		}
+
+		return "redirect:/news"; // news.html 템플릿을 반환합니다.
+	}
 }

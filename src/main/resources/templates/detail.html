@@ -51,5 +51,6 @@
     <p th:text="${comment.comments}">댓글이 들어갈 부분입니다.</p>
     <p th:text="${comment.clientIP}">IP가 들어갈 부분입니다.</p>
 </div>
+<a th:href="@{/remove(id=${newsDetail.id})}"><button>삭제</button></a>
 </body>
 </html>

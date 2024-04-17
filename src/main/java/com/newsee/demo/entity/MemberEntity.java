@@ -1,5 +1,6 @@
 package com.newsee.demo.entity;
 
+
 import java.time.LocalDateTime;
 
 import org.springframework.data.annotation.CreatedDate;
@@ -20,29 +21,30 @@ import lombok.Setter;
 @EntityListeners(AuditingEntityListener.class)
 @Getter // lombok getter
 @Setter // lombok setter
-@Table(name = "news")
-public class NewsEntity {
-	@Id
-	@GeneratedValue(strategy = GenerationType.IDENTITY)
-	private Long id;
+@Table(name = "member")
+public class MemberEntity {
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
 
-	@NonNull
-	@Column
-	private String title; // 제목
+    @NonNull
+    @Column
+    private String name; // 이름
 
-	@Column
-	private int views; // 조회수
+    @NonNull
+    @Column
+    private String passwd; // 비밀번호
 
-	@Column(length = 4000)
-	private String contents; // 내용
+    @NonNull
+    @Column
+    private String nickname; // 닉네임
 
-	@Column
-	private int commentCount; // 댓글 수
+    @NonNull
+    @Column
+    private Boolean status; // 탈퇴여부 
 
-	@CreatedDate
-	@Column(columnDefinition = "TIMESTAMP", nullable = false, updatable = false)
-	private LocalDateTime createTime; // 등록일자
-
-	@NonNull
-	private String clientIP; // 댓글 단 IP
+    @CreatedDate
+    @Column(columnDefinition = "TIMESTAMP", nullable = false, updatable = false)
+    private LocalDateTime createTime; // 등록일자
 }
+
