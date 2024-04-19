@@ -85,6 +85,6 @@ public class CommentController {
             commentRepository.deleteById(id);
         }
 
-        return "redirect:/news"; // news.html 템플릿을 반환합니다.
+        return "redirect:/detail?id=" + commentDetail.getNewsId(); // news.html 템플릿을 반환합니다.
     }
 }
