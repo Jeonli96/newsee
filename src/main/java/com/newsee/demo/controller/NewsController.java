@@ -33,6 +33,30 @@ public class NewsController {
 	private final NewsRepository newsRepository;
 	private final CommentRepository commentRepository;
 
+	// 게시글 등록
+	@PostMapping("/newsPost")
+	public String newsPost(@RequestBody NewsRequest request, HttpServletRequest httpServletRequest) {
+		// 새로운 게시글 생성
+		NewsEntity newsEntity = new NewsEntity();
+		newsEntity.setTitle(request.getTitle());
+		newsEntity.setContents(request.getContents());
+		newsEntity.setViews(0);
+		newsEntity.setCommentCount(0);
+
+		// 클라이언트의 IP 주소를 가져옵니다.
+		String clientIpAddress = httpServletRequest.getHeader("X-Forwarded-For");
+		if (clientIpAddress == null || clientIpAddress.isEmpty()) {
+			// 프록시 서버를 통해 요청이 전달되지 않은 경우, 클라이언트의 진짜 IP 주소는 getRemoteAddr() 메소드로 가져올 수 있습니다.
+			clientIpAddress = httpServletRequest.getRemoteAddr();
+		}
+		newsEntity.setClientIP(clientIpAddress);
+
+		newsRepository.save(newsEntity);
+
+		// 게시글 목록 페이지로 리다이렉트
+		return "redirect:/news";
+	}
+
 	// 게시글 목록
 	@GetMapping("/news")
 	public String newsList(Model model, @PageableDefault(size = 10) Pageable pageable) {
@@ -65,14 +89,12 @@ public class NewsController {
 		return "detail"; // detail.html 템플릿을 반환합니다.
 	}
 
-	@PostMapping("/newsPost")
-	public String newsPost(@RequestBody NewsRequest request, HttpServletRequest httpServletRequest) {
-		// 새로운 게시글 생성
-		NewsEntity newsEntity = new NewsEntity();
-		newsEntity.setTitle(request.getTitle());
-		newsEntity.setContents(request.getContents());
-		newsEntity.setViews(0);
-		newsEntity.setCommentCount(0);
+	// 게시글 업데이트
+	@PostMapping("/newsUpdate")
+	public String newsUpdate(@RequestBody NewsRequest request, HttpServletRequest httpServletRequest) {
+		// 게시글 find
+		Optional<NewsEntity> newsDetailOptional = newsRepository.findById(request.getId());
+		NewsEntity newsDetail = newsDetailOptional.orElseThrow(() -> new RuntimeException("News not found"));
 
 		// 클라이언트의 IP 주소를 가져옵니다.
 		String clientIpAddress = httpServletRequest.getHeader("X-Forwarded-For");
@@ -80,16 +102,20 @@ public class NewsController {
 			// 프록시 서버를 통해 요청이 전달되지 않은 경우, 클라이언트의 진짜 IP 주소는 getRemoteAddr() 메소드로 가져올 수 있습니다.
 			clientIpAddress = httpServletRequest.getRemoteAddr();
 		}
-		newsEntity.setClientIP(clientIpAddress);
 
-		newsRepository.save(newsEntity);
+		//업데이트 로직
+		if (newsDetail.getClientIP().equals(clientIpAddress)) {
+			newsDetail.setTitle(request.getTitle());
+			newsDetail.setContents(request.getContents());
+			newsRepository.save(newsDetail); // 변경된 내용 저장
+		}
 
-		// 게시글 목록 페이지로 리다이렉트
-		return "redirect:/news";
+		return "redirect:/detail?id=" + request.getId(); // detail.html 템플릿을 반환합니다.
 	}
 
+	// 게시글 삭제
 	@GetMapping("/remove")
-	public String newsRemove(@RequestParam(value = "id") long id, HttpServletRequest httpServletRequest, Model model) {
+	public String newsRemove(@RequestParam(value = "id") long id, HttpServletRequest httpServletRequest) {
 		// 게시글 find
 		Optional<NewsEntity> newsDetailOptional = newsRepository.findById(id);
 		NewsEntity newsDetail = newsDetailOptional.orElseThrow(() -> new RuntimeException("News not found"));

@@ -8,5 +8,6 @@ import lombok.Setter;
 public class CommentRequest {
 	private String Comment;
 	private Long NewsId;
+	private Long id;
 	private String clientIP;
 }

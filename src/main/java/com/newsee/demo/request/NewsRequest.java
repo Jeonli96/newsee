@@ -8,4 +8,5 @@ import lombok.Setter;
 public class NewsRequest {
 	private String title;
 	private String contents;
+	private Long id;
 }
