@@ -89,7 +89,7 @@ public class NewsController {
 	}
 
 	@GetMapping("/remove")
-	public String newsRemove(@RequestParam(value = "id") long id, HttpServletRequest httpServletRequest) {
+	public String newsRemove(@RequestParam(value = "id") long id, HttpServletRequest httpServletRequest, Model model) {
 		// 게시글 find
 		Optional<NewsEntity> newsDetailOptional = newsRepository.findById(id);
 		NewsEntity newsDetail = newsDetailOptional.orElseThrow(() -> new RuntimeException("News not found"));
