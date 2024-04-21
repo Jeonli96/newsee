@@ -41,6 +41,10 @@ public class MemberEntity {
 
     @NonNull
     @Column
+    private String role; // 역할
+
+    @NonNull
+    @Column
     private Boolean status; // 탈퇴여부 
 
     @CreatedDate

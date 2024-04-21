@@ -19,6 +19,7 @@ public class CommentController {
     private final NewsRepository newsRepository;
     private final CommentRepository commentRepository;
 
+    //댓글 등록
     @PostMapping("/commentPost")
     public String commentPost(@ModelAttribute CommentRequest request, HttpServletRequest httpServletRequest) {
         // 댓글 추가 로직
