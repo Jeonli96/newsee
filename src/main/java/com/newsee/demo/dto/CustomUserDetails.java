@@ -3,6 +3,7 @@ package com.newsee.demo.dto;
 import java.util.ArrayList;
 import java.util.Collection;
 
+import org.springframework.core.annotation.Order;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
@@ -31,9 +32,9 @@ public class CustomUserDetails implements UserDetails {
 	}
 
 	@Override
-	public String getUsername() {
-		return memberEntity.getName();
-	}
+	public String getUsername() { return memberEntity.getName();}
+
+	public Long getUserId() { return memberEntity.getId(); }
 
 	@Override
 	public boolean isAccountNonExpired() {

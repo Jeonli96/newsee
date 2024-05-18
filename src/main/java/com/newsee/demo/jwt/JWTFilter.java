@@ -33,7 +33,6 @@ public class JWTFilter extends OncePerRequestFilter {
 			return ;
 		}
 
-		System.out.println("Authorization now");
 		// Bearer 제거 후 순수 토큰 획득
 		String token = authorization.split(" ")[1];
 		// 토큰 시간 검증
@@ -46,9 +45,11 @@ public class JWTFilter extends OncePerRequestFilter {
 
 		String username = jwtUtil.getUsername(token);
 		String role = jwtUtil.getRole(token);
+		Long id  = jwtUtil.getUserId(token);
 
 		//Member entity 생성 set
 		MemberEntity memberEntity = new MemberEntity();
+		memberEntity.setId(id);
 		memberEntity.setName(username);
 		memberEntity.setPasswd("temppassword");
 		memberEntity.setRole(role);

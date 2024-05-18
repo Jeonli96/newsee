@@ -35,7 +35,7 @@ public class MemberController {
         memberEntity.setPasswd(bCryptPasswordEncoder.encode(request.getPasswd()));
         memberEntity.setNickname(request.getNickname());
         memberEntity.setStatus(true);
-        memberEntity.setRole("ROLE_ADMIN");
+        memberEntity.setRole("ROLE_USER");
         memberRepository.save(memberEntity);
 
         return "ok";
