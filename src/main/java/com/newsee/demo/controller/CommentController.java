@@ -6,15 +6,16 @@ import com.newsee.demo.jwt.JWTUtil;
 import com.newsee.demo.repository.CommentRepository;
 import com.newsee.demo.repository.NewsRepository;
 import com.newsee.demo.request.CommentRequest;
-import com.newsee.demo.request.NewsRequest;
+import com.newsee.demo.response.NewsDetailResponse;
+
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
-import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
 import java.util.Optional;
 
-@Controller
+@RestController
 @RequiredArgsConstructor
 public class CommentController {
     private final NewsRepository newsRepository;
@@ -23,7 +24,7 @@ public class CommentController {
 
     //댓글 등록
     @PostMapping("/commentPost")
-    public String commentPost(@ModelAttribute CommentRequest request, HttpServletRequest httpServletRequest) {
+    public NewsDetailResponse commentPost(@ModelAttribute CommentRequest request, HttpServletRequest httpServletRequest) {
         String token = jwtUtil.resolveToken(httpServletRequest);
         if (token == null || jwtUtil.isExpired(token)) {
             throw new RuntimeException("Invalid JWT token");
@@ -52,15 +53,33 @@ public class CommentController {
         newsDetail.setCommentCount(newsDetail.getCommentCount() + 1);
         newsRepository.save(newsDetail); // 변경된 댓글 개수를 저장
 
-        return "redirect:/detail?id=" + request.getNewsId();
+        List<CommentEntity> comments = commentRepository.findAllByNewsId(request.getNewsId());
+
+        // 뉴스 및 댓글을 포함한 응답 생성
+        NewsDetailResponse response = new NewsDetailResponse();
+        response.setNews(newsDetail);
+        response.setComments(comments);
+        return response;
     }
 
     // 댓글 업데이트
     @PostMapping("/commentUpdate")
-    public String commentUpdate(@RequestBody CommentRequest request, HttpServletRequest httpServletRequest) {
+    public NewsDetailResponse commentUpdate(@RequestBody CommentRequest request, HttpServletRequest httpServletRequest) {
         // 댓글 find
         Optional<CommentEntity> commentEntityOptional = commentRepository.findById(request.getId());
         CommentEntity commentDetail = commentEntityOptional.orElseThrow(() -> new RuntimeException("Comment not found"));
+
+        // JWT 토큰 파싱
+        String token = jwtUtil.resolveToken(httpServletRequest);
+        if (token == null) {
+            throw new RuntimeException("Invalid JWT token");
+        }
+        // JWT 토큰에서 id 파싱
+        Long userId = jwtUtil.getUserId(token);
+
+        if (!userId.equals(commentDetail.getUserId())) {
+            throw new RuntimeException("Invalid id");
+        }
 
         // 클라이언트의 IP 주소를 가져옵니다.
         String clientIpAddress = httpServletRequest.getHeader("X-Forwarded-For");
@@ -75,7 +94,15 @@ public class CommentController {
             commentRepository.save(commentDetail); // 변경된 내용 저장
         }
 
-        return "redirect:/detail?id=" + request.getNewsId(); // detail.html 템플릿을 반환합니다.
+        Optional<NewsEntity> newsDetailOptional = newsRepository.findById(commentDetail.getNewsId());
+        NewsEntity newsDetail = newsDetailOptional.orElseThrow(() -> new RuntimeException("News not found"));
+        List<CommentEntity> comments = commentRepository.findAllByNewsId(commentDetail.getNewsId());
+
+        // 뉴스 및 댓글을 포함한 응답 생성
+        NewsDetailResponse response = new NewsDetailResponse();
+        response.setNews(newsDetail);
+        response.setComments(comments);
+        return response;
     }
 
     // 댓글 삭제
@@ -85,18 +112,24 @@ public class CommentController {
         Optional<CommentEntity> commentEntityOptional = commentRepository.findById(id);
         CommentEntity commentDetail = commentEntityOptional.orElseThrow(() -> new RuntimeException("Comment not found"));
 
-        // 클라이언트의 IP 주소를 가져옵니다.
-        String clientIpAddress = httpServletRequest.getHeader("X-Forwarded-For");
-        if (clientIpAddress == null || clientIpAddress.isEmpty()) {
-            // 프록시 서버를 통해 요청이 전달되지 않은 경우, 클라이언트의 진짜 IP 주소는 getRemoteAddr() 메소드로 가져올 수 있습니다.
-            clientIpAddress = httpServletRequest.getRemoteAddr();
+        // JWT 토큰 파싱
+        String token = jwtUtil.resolveToken(httpServletRequest);
+        if (token == null) {
+            throw new RuntimeException("Invalid JWT token");
+        }
+        // JWT 토큰에서 id 파싱
+        Long userId = jwtUtil.getUserId(token);
+
+        if (!userId.equals(commentDetail.getUserId())) {
+            throw new RuntimeException("Invalid id");
         }
 
-        //삭제 로직
-        if (commentDetail.getClientIP().equals(clientIpAddress)) {
+        // 삭제 로직
+        try {
             commentRepository.deleteById(id);
+            return "News deleted successfully";
+        } catch (Exception e) {
+            throw new RuntimeException("Unauthorized to delete comment = " + e);
         }
-
-        return "redirect:/detail?id=" + commentDetail.getNewsId(); // news.html 템플릿을 반환합니다.
     }
 }
