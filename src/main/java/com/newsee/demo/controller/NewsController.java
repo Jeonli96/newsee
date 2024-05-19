@@ -1,5 +1,6 @@
 package com.newsee.demo.controller;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -19,6 +20,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 
 import com.newsee.demo.entity.CommentEntity;
 import com.newsee.demo.entity.NewsEntity;
+import com.newsee.demo.jwt.JWTUtil;
 import com.newsee.demo.repository.CommentRepository;
 import com.newsee.demo.repository.NewsRepository;
 import com.newsee.demo.request.CommentRequest;
@@ -32,16 +34,28 @@ import lombok.RequiredArgsConstructor;
 public class NewsController {
 	private final NewsRepository newsRepository;
 	private final CommentRepository commentRepository;
+	private final JWTUtil jwtUtil;
 
 	// 게시글 등록
 	@PostMapping("/newsPost")
 	public String newsPost(@RequestBody NewsRequest request, HttpServletRequest httpServletRequest) {
+		// JWT 토큰 파싱
+		String token = jwtUtil.resolveToken(httpServletRequest);
+		if (token == null) {
+			throw new RuntimeException("Invalid JWT token");
+		}
+		// JWT 토큰에서 id, 이름 파싱
+		Long userId = jwtUtil.getUserId(token);
+		String username = jwtUtil.getUsername(token);
+
 		// 새로운 게시글 생성
 		NewsEntity newsEntity = new NewsEntity();
 		newsEntity.setTitle(request.getTitle());
 		newsEntity.setContents(request.getContents());
 		newsEntity.setViews(0);
 		newsEntity.setCommentCount(0);
+		newsEntity.setUserId(userId);
+		newsEntity.setUserName(username);
 
 		// 클라이언트의 IP 주소를 가져옵니다.
 		String clientIpAddress = httpServletRequest.getHeader("X-Forwarded-For");

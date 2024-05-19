@@ -39,10 +39,19 @@ public class NewsEntity {
 	@Column
 	private int commentCount; // 댓글 수
 
+	@NonNull
+	@Column
+	private String clientIP; // 글 쓴 IP
+
+	@NonNull
+	@Column
+	private Long userId; // 유저 id
+
+	@NonNull
+	@Column
+	private String userName; // 유저 이름
+
 	@CreatedDate
 	@Column(columnDefinition = "TIMESTAMP", nullable = false, updatable = false)
 	private LocalDateTime createTime; // 등록일자
-
-	@NonNull
-	private String clientIP; // 댓글 단 IP
 }

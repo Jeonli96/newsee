@@ -2,6 +2,7 @@ package com.newsee.demo.controller;
 
 import com.newsee.demo.entity.CommentEntity;
 import com.newsee.demo.entity.NewsEntity;
+import com.newsee.demo.jwt.JWTUtil;
 import com.newsee.demo.repository.CommentRepository;
 import com.newsee.demo.repository.NewsRepository;
 import com.newsee.demo.request.CommentRequest;
@@ -18,10 +19,18 @@ import java.util.Optional;
 public class CommentController {
     private final NewsRepository newsRepository;
     private final CommentRepository commentRepository;
+    private final JWTUtil jwtUtil;
 
     //댓글 등록
     @PostMapping("/commentPost")
     public String commentPost(@ModelAttribute CommentRequest request, HttpServletRequest httpServletRequest) {
+        String token = jwtUtil.resolveToken(httpServletRequest);
+        if (token == null || jwtUtil.isExpired(token)) {
+            throw new RuntimeException("Invalid JWT token");
+        }
+        Long userId = jwtUtil.getUserId(token);
+        String username = jwtUtil.getUsername(token);
+
         // 댓글 추가 로직
         CommentEntity commentEntity = new CommentEntity();
         // 클라이언트의 IP 주소를 가져옵니다.
@@ -33,6 +42,8 @@ public class CommentController {
         commentEntity.setClientIP(clientIpAddress);
         commentEntity.setComments(request.getComment());
         commentEntity.setNewsId(request.getNewsId());
+        commentEntity.setUserId(userId);
+        commentEntity.setUserName(username);
         commentRepository.save(commentEntity);
 
         // 게시글 댓글 개수 증가 로직

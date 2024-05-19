@@ -37,10 +37,6 @@ public class MemberEntity {
 
     @NonNull
     @Column
-    private String nickname; // 닉네임
-
-    @NonNull
-    @Column
     private String role; // 역할
 
     @NonNull

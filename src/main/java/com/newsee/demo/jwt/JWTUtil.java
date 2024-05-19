@@ -10,6 +10,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import io.jsonwebtoken.Jwts;
+import jakarta.servlet.http.HttpServletRequest;
 
 @Component
 public class JWTUtil {
@@ -32,6 +33,19 @@ public class JWTUtil {
 
 	public Boolean isExpired(String token) {
 		return Jwts.parser().verifyWith(secretKey).build().parseSignedClaims(token).getPayload().getExpiration().before(new Date());
+	}
+
+	public String resolveToken(HttpServletRequest req) {
+		String bearerToken = req.getHeader("Authorization");
+		String token = null;
+		if (bearerToken != null && bearerToken.startsWith("Bearer ")) {
+			token = bearerToken.substring(7);
+			if (isExpired(token)) {
+				return null;
+			}
+			return token;
+		}
+		return null;
 	}
 
 	public String createJwt(String username, String role, Long id, Long expiredMs) {

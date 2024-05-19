@@ -26,6 +26,7 @@ public class CommentEntity {
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private Long id;
 
+	@Column
 	private Long newsId;
 
 	@NonNull
@@ -37,5 +38,14 @@ public class CommentEntity {
 	private LocalDateTime createTime; // 등록일자
 
 	@NonNull
+	@Column
 	private String clientIP; // 댓글 단 IP
+
+	@NonNull
+	@Column
+	private Long userId; // 유저 id
+
+	@NonNull
+	@Column
+	private String userName; // 유저 이름
 }
