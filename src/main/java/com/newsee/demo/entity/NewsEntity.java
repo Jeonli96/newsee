@@ -51,6 +51,9 @@ public class NewsEntity {
 	@Column
 	private String userName; // 유저 이름
 
+	@Column
+	private Long fileId; // 파일 id
+
 	@CreatedDate
 	@Column(columnDefinition = "TIMESTAMP", nullable = false, updatable = false)
 	private LocalDateTime createTime; // 등록일자
